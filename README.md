@@ -83,3 +83,26 @@ public class UserBizConverter extends AbstractBizConverter<String, UserInfoModel
 }
 ```
 
+#### 1.4批量执行聚合
+
+```java
+   
+     /**
+     * 初始化数据转换器，结合spring的话可以用下面方式注入
+     *
+     *  @Resource 
+     *  private List<AbstractBizConverter<?, ?>> converters;
+     **/
+   private List<AbstractBizConverter<?, ?>> converters = Lists.newArrayList();
+
+    @Before
+    public void init() {
+        converters.add(new UserBizConverter());
+        converters.add(new ProductBizConverter());
+    }
+    //获取数据
+	List<OrderModel> orders ;
+    //聚合关联数据 
+    ReflectUtil.parallelConvert(converters, orders, OrderModel.class);
+```
+

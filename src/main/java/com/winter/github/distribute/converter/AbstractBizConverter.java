@@ -188,5 +188,12 @@ public abstract class AbstractBizConverter<U, C> {
      * @author zhangdongdong <br>
      * @taskId <br>
      */
-    protected abstract <R> void convertField(R row, Map.Entry<Field, CombineField> bizEntry, List<C> matchList);
+    protected <R> void convertField(R row, Map.Entry<Field, CombineField> bizEntry, List<C> matchList) {
+        Class<?> fieldType = bizEntry.getKey().getType();
+        if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType)) {
+            ReflectUtil.setPropertyValue(row, bizEntry.getValue().convertField(), matchList);
+        } else {
+            ReflectUtil.setPropertyValue(row, bizEntry.getValue().convertField(), matchList.get(0));
+        }
+    }
 }
