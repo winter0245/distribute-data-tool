@@ -1,64 +1,21 @@
-# distribute-data-tool
-### 1.聚合数据(可以参考MainTests用例)
+package com.winter.github.distribute.converters;
 
-#### 1.1定义需要聚合的实体类，例如
+import com.winter.github.distribute.Constants;
+import com.winter.github.distribute.annotation.CombineField;
+import com.winter.github.distribute.converter.AbstractBizConverter;
+import com.winter.github.distribute.model.UserInfoModel;
+import com.winter.github.distribute.utils.ReflectUtil;
 
-```java
-/**
- * 模拟订单对象<br>
- * @version 1.0<br>
- * @taskId <br>
- * @date 2020年03月30日 16:52:06 <br>
- */
-@Data
-public class OrderModel {
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-    private String id;
-
-
-    private String userId;
-
-
-    private List<String> productIds;
-
-    /**
-     * 用户信息
-     */
-    private UserInfoModel userInfoModel;
-
-    /**
-     * 商品信息
-     */
-    private List<ProductModel> productModels;
-
-    public OrderModel(String id, String userId, List<String> productIds) {
-        this.id = id;
-        this.userId = userId;
-        this.productIds = productIds;
-    }
-}
-```
-
-#### 1.2添加需要关联查询的字段，例如
-
-```java
-   	/**
-   	* 转换器会将userId查询出的user对象注入到userInfoModel属性
-   	*/
-	@CombineField(value = Constants.USER_MODULE, convertField = "userInfoModel")
-    private String userId;
-
-	    /**
-     * 用户信息
-     */
-    private UserInfoModel userInfoModel;
-```
-
-#### 1.3继承AbstractBizConverter，实现自定义的转换器
-
-```java
 /**
  * 模拟用户数据聚合转换<br>
+ *
+ * @author zhangdongdong<br>
  * @version 1.0<br>
  * @taskId <br>
  * @date 2020年03月30日 17:03:37 <br>
@@ -81,5 +38,3 @@ public class UserBizConverter extends AbstractBizConverter<String, UserInfoModel
     }
 
 }
-```
-
