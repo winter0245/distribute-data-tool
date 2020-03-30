@@ -45,7 +45,7 @@ public class OrderModel {
    	/**
    	* 转换器会将userId查询出的user对象注入到userInfoModel属性
    	*/
-	@CombineField(value = Constants.USER_MODULE, convertField = "userInfoModel")
+    @CombineField(value = Constants.USER_MODULE, convertField = "userInfoModel")
     private String userId;
 
 	    /**
