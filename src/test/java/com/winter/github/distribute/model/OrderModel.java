@@ -42,4 +42,7 @@ public class OrderModel {
         this.userId = userId;
         this.productIds = productIds;
     }
+
+    public OrderModel() {
+    }
 }

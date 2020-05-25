@@ -16,4 +16,6 @@ public class Constants {
     public static final String USER_MODULE = "user";
 
     public static final String PRODUCT_MODULE = "product";
+
+    public static final String ADDRESS_MODULE = "address";
 }

@@ -7,13 +7,20 @@ import com.winter.github.distribute.converters.UserBizConverter;
 import com.winter.github.distribute.model.OrderModel;
 import com.winter.github.distribute.model.ProductModel;
 import com.winter.github.distribute.model.UserInfoModel;
+import com.winter.github.distribute.service.OrderService;
+import com.winter.github.distribute.service.UserService;
 import com.winter.github.distribute.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.Resource;
 import java.beans.PropertyDescriptor;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,6 +35,8 @@ import java.util.stream.Stream;
  * @taskId <br>
  * @date 2020年03月30日 16:11:34 <br>
  */
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = TestServer.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @Slf4j
 public class MainTests {
     /**
@@ -36,6 +45,12 @@ public class MainTests {
      * @Resource private List<AbstractBizConverter<?, ?>> converters;
      **/
     private List<AbstractBizConverter<?, ?>> converters = Lists.newArrayList();
+
+    @Resource
+    private UserService userService;
+
+    @Resource
+    private OrderService orderService;
 
     @Before
     public void init() {
@@ -74,5 +89,27 @@ public class MainTests {
                 log.info("order convert result :{}", o);
             });
         }
+    }
+
+    @Test
+    public void testUser() {
+//        List<UserInfoModel> users = userService.getUsers();
+//        Assert.assertFalse(users.isEmpty());
+        for (int i = 0; i < 100; i++) {
+            long start = System.currentTimeMillis();
+            List<OrderModel> orderModels = orderService.queryOrders();
+            Assert.assertFalse(orderModels.isEmpty());
+            orderModels.forEach(o -> {
+                Assert.assertNotNull(o.getUserInfoModel());
+                Assert.assertFalse(o.getUserInfoModel().getAddressModels().isEmpty());
+                Assert.assertFalse(o.getProductModels().isEmpty());
+            });
+            log.info("query  orders [{}]  success ,take time {}ms", orderModels.size(), System.currentTimeMillis() - start);
+        }
+
+    }
+
+    public static void main(String[] args) {
+        System.out.println(2 ^ 3);
     }
 }

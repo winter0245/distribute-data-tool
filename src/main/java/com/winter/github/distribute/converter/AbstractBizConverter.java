@@ -76,7 +76,7 @@ public abstract class AbstractBizConverter<U, C> {
                         //检查每一行是否匹配到了数据
                         if (!ReflectUtil.isEmpty(result)) {
                             //转换到目标方法
-                            convertField(r, bizEntry, result);
+                            convertField(r, bizEntry, result, type);
                         }
                     });
                 }
@@ -188,9 +188,10 @@ public abstract class AbstractBizConverter<U, C> {
      * @author zhangdongdong <br>
      * @taskId <br>
      */
-    protected <R> void convertField(R row, Map.Entry<Field, CombineField> bizEntry, List<C> matchList) {
+    protected <R> void convertField(R row, Map.Entry<Field, CombineField> bizEntry, List<C> matchList, Class<R> type) {
         Class<?> fieldType = bizEntry.getKey().getType();
-        if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType)) {
+        Class<?> targetField = ReflectUtil.getField(type, bizEntry.getValue().convertField()).getType();
+        if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType) || Collection.class.isAssignableFrom(targetField)) {
             ReflectUtil.setPropertyValue(row, bizEntry.getValue().convertField(), matchList);
         } else {
             ReflectUtil.setPropertyValue(row, bizEntry.getValue().convertField(), matchList.get(0));

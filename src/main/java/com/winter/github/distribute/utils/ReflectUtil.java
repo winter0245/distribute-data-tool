@@ -2,6 +2,7 @@ package com.winter.github.distribute.utils;
 
 import com.google.common.collect.Maps;
 import com.winter.github.distribute.converter.AbstractBizConverter;
+import com.winter.github.distribute.exception.ReflectionException;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.cglib.core.ReflectUtils;
 
@@ -170,6 +171,18 @@ public class ReflectUtil {
                     })));
             return result;
         });
+    }
+
+    public static Field getField(Class<?> type, String name) {
+        try {
+            Field field = type.getDeclaredField(name);
+            field.setAccessible(true);
+            return field;
+        } catch (NoSuchFieldException e) {
+            log.error("get field {} for class {} error", name, type);
+            throw new ReflectionException(e);
+        }
+
     }
 
 }
