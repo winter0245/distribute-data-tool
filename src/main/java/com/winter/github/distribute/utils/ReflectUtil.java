@@ -168,18 +168,6 @@ public class ReflectUtil {
         }
     }
 
-    /**
-     * Description: 串行转换<br>
-     *
-     * @param converters 所有的转换器
-     * @param rows       需要转换的数据
-     * @param type       数据类型
-     * @author zhangdongdong <br>
-     * @taskId <br>
-     */
-    public static <T> void serialConvert(List<AbstractBizConverter<?, ?>> converters, List<T> rows, Class<T> type) {
-        Optional.ofNullable(converters).ifPresent(list -> list.forEach(c -> c.convertBiz(rows, type)));
-    }
 
     /**
      * 获取类带指定注解的属性
