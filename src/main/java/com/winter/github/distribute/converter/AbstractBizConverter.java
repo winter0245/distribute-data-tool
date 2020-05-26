@@ -83,7 +83,7 @@ public abstract class AbstractBizConverter<U, C> {
             } catch (Exception e) {
                 log.error("convert [{}] to [{}] error", getBizModule(), type, e);
             } finally {
-                log.info("convert [{}] finish ,take time :{}ms", getBizModule(), System.currentTimeMillis() - startTime);
+                log.debug("convert [{}] finish ,take time :{}ms", getBizModule(), System.currentTimeMillis() - startTime);
             }
         }
     }
@@ -190,8 +190,8 @@ public abstract class AbstractBizConverter<U, C> {
      */
     protected <R> void convertField(R row, Map.Entry<Field, CombineField> bizEntry, List<C> matchList, Class<R> type) {
         Class<?> fieldType = bizEntry.getKey().getType();
-        Class<?> targetField = ReflectUtil.getField(type, bizEntry.getValue().convertField()).getType();
-        if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType) || Collection.class.isAssignableFrom(targetField)) {
+        PropertyDescriptor targetField = ReflectUtil.getBeanPropertyMethod(type, bizEntry.getValue().convertField());
+        if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType) || targetField != null) {
             ReflectUtil.setPropertyValue(row, bizEntry.getValue().convertField(), matchList);
         } else {
             ReflectUtil.setPropertyValue(row, bizEntry.getValue().convertField(), matchList.get(0));

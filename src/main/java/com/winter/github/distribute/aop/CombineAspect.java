@@ -25,7 +25,7 @@ public class CombineAspect {
     public Object combineMethod(JoinPoint joinPoint, Object retVal, Combine combine) {
         if (retVal != null) {
             Class type = combine.value();
-            log.info("method {} return {}", joinPoint.getSignature(), retVal);
+            log.debug("method {} return {}", joinPoint.getSignature(), retVal);
             if (retVal instanceof List) {
                 List rows = (List) retVal;
                 ReflectUtil.convert(converterList, rows, type, combine.isParallel());
