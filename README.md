@@ -106,3 +106,21 @@ public class UserBizConverter extends AbstractBizConverter<String, UserInfoModel
     ReflectUtil.parallelConvert(converters, orders, OrderModel.class);
 ```
 
+#### 1.5利用注解聚合
+
+给方法增加`@Combine`注解标记为需要聚合返回结果，可以省略 1.4 的步骤，如下。
+
+```java
+    @Override
+    @Combine(OrderModel.class)
+    public List<OrderModel> queryOrders() {
+        return Stream.generate(() -> {
+            OrderModel orderModel = new OrderModel();
+            orderModel.setId(RandomStringUtils.randomAlphanumeric(6));
+            orderModel.setProductIds(Lists.newArrayList(RandomStringUtils.randomAlphanumeric(6), RandomStringUtils.randomAlphanumeric(6)));
+            orderModel.setUserId(UUID.randomUUID().toString());
+            return orderModel;
+        }).limit(10).collect(Collectors.toList());
+    }
+```
+
