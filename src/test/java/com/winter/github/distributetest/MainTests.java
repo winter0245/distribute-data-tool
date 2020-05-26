@@ -1,14 +1,14 @@
-package com.winter.github.distribute;
+package com.winter.github.distributetest;
 
 import com.google.common.collect.Lists;
 import com.winter.github.distribute.converter.AbstractBizConverter;
-import com.winter.github.distribute.converters.ProductBizConverter;
-import com.winter.github.distribute.converters.UserBizConverter;
-import com.winter.github.distribute.model.OrderModel;
-import com.winter.github.distribute.model.ProductModel;
-import com.winter.github.distribute.model.UserInfoModel;
-import com.winter.github.distribute.service.OrderService;
-import com.winter.github.distribute.service.UserService;
+import com.winter.github.distributetest.converters.ProductBizConverter;
+import com.winter.github.distributetest.converters.UserBizConverter;
+import com.winter.github.distributetest.model.OrderModel;
+import com.winter.github.distributetest.model.ProductModel;
+import com.winter.github.distributetest.model.UserInfoModel;
+import com.winter.github.distributetest.service.OrderService;
+import com.winter.github.distributetest.service.UserService;
 import com.winter.github.distribute.utils.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -16,7 +16,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -44,7 +43,8 @@ public class MainTests {
      *
      * @Resource private List<AbstractBizConverter<?, ?>> converters;
      **/
-    private List<AbstractBizConverter<?, ?>> converters = Lists.newArrayList();
+    @Resource
+    private List<AbstractBizConverter<?, ?>> converters ;
 
     @Resource
     private UserService userService;
@@ -52,11 +52,6 @@ public class MainTests {
     @Resource
     private OrderService orderService;
 
-    @Before
-    public void init() {
-        converters.add(new UserBizConverter());
-        converters.add(new ProductBizConverter());
-    }
 
     @Test
     public void testReflect() {
@@ -80,7 +75,6 @@ public class MainTests {
             orders.forEach(o -> {
                 UserInfoModel userInfoModel = o.getUserInfoModel();
                 Assert.assertNotNull(userInfoModel);
-                Assert.assertEquals("user-" + o.getUserId(), userInfoModel.getName());
                 List<ProductModel> productModels = o.getProductModels();
                 Assert.assertEquals(productModels.size(), o.getProductIds().size());
                 for (int i = 0; i < productModels.size(); i++) {

@@ -1,10 +1,8 @@
-package com.winter.github.distribute.model;
+package com.winter.github.distributetest.model;
 
-import com.winter.github.distribute.Constants;
+import com.winter.github.distributetest.Constants;
 import com.winter.github.distribute.annotation.CombineField;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
-package com.winter.github.distribute.service.impl;
+package com.winter.github.distributetest.service.impl;
 
-import com.winter.github.distribute.model.AddressModel;
-import com.winter.github.distribute.service.AddressService;
+import com.winter.github.distributetest.model.AddressModel;
+import com.winter.github.distributetest.service.AddressService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;

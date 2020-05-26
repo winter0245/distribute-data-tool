@@ -1,4 +1,4 @@
-package com.winter.github.distribute;
+package com.winter.github.distributetest;
 
 /**
  * 常量 <br>

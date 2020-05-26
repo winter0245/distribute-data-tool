@@ -1,9 +1,9 @@
-package com.winter.github.distribute.converters;
+package com.winter.github.distributetest.converters;
 
-import com.winter.github.distribute.Constants;
+import com.winter.github.distributetest.Constants;
 import com.winter.github.distribute.annotation.CombineField;
 import com.winter.github.distribute.converter.AbstractBizConverter;
-import com.winter.github.distribute.model.ProductModel;
+import com.winter.github.distributetest.model.ProductModel;
 import com.winter.github.distribute.utils.ReflectUtil;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.stereotype.Component;

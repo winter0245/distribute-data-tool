@@ -135,6 +135,37 @@ public class ReflectUtil {
     }
 
     /**
+     * Description: 串行转换(如果有线程安全问题不要使用此方法)<br>
+     *
+     * @param converters 所有的转换器
+     * @param rows       需要转换的数据
+     * @param type       数据类型
+     * @author zhangdongdong <br>
+     * @taskId <br>
+     */
+    public static <T> void linearConvert(List<AbstractBizConverter<?, ?>> converters, List<T> rows, Class<T> type) {
+        Optional.ofNullable(converters).ifPresent(list -> list.forEach(c -> c.convertBiz(rows, type)));
+    }
+
+    /**
+     * Description: 聚合数据<br>
+     *
+     * @param converters
+     * @param rows
+     * @param type
+     * @param isParallel 是否需要并行 true-并行,false-线性
+     * @author zhangdongdong <br>
+     * @taskId <br>
+     */
+    public static <T> void convert(List<AbstractBizConverter<?, ?>> converters, List<T> rows, Class<T> type, boolean isParallel) {
+        if (isParallel) {
+            parallelConvert(converters, rows, type);
+        } else {
+            linearConvert(converters, rows, type);
+        }
+    }
+
+    /**
      * Description: 串行转换<br>
      *
      * @param converters 所有的转换器

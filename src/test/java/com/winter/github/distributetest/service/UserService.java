@@ -1,6 +1,6 @@
-package com.winter.github.distribute.service;
+package com.winter.github.distributetest.service;
 
-import com.winter.github.distribute.model.UserInfoModel;
+import com.winter.github.distributetest.model.UserInfoModel;
 
 import java.util.List;
 

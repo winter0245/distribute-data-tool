@@ -1,11 +1,11 @@
-package com.winter.github.distribute.converters;
+package com.winter.github.distributetest.converters;
 
 import com.google.common.collect.Lists;
-import com.winter.github.distribute.Constants;
+import com.winter.github.distributetest.Constants;
 import com.winter.github.distribute.annotation.CombineField;
 import com.winter.github.distribute.converter.AbstractBizConverter;
-import com.winter.github.distribute.model.UserInfoModel;
-import com.winter.github.distribute.service.UserService;
+import com.winter.github.distributetest.model.UserInfoModel;
+import com.winter.github.distributetest.service.UserService;
 import com.winter.github.distribute.utils.ReflectUtil;
 import org.springframework.stereotype.Component;
 

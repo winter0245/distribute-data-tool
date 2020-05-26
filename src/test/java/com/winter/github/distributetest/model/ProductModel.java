@@ -1,4 +1,4 @@
-package com.winter.github.distribute.model;
+package com.winter.github.distributetest.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

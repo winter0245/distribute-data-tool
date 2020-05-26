@@ -1,8 +1,8 @@
-package com.winter.github.distribute.service.impl;
+package com.winter.github.distributetest.service.impl;
 
 import com.winter.github.distribute.annotation.Combine;
-import com.winter.github.distribute.model.UserInfoModel;
-import com.winter.github.distribute.service.UserService;
+import com.winter.github.distributetest.model.UserInfoModel;
+import com.winter.github.distributetest.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 

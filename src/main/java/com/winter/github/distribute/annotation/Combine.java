@@ -15,5 +15,15 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Combine {
+    /**
+     * 聚合数据类型
+     * @return
+     */
     Class<?> value();
+
+    /**
+     * 是否并行抓取数据
+     * @return
+     */
+    boolean isParallel () default true;
 }

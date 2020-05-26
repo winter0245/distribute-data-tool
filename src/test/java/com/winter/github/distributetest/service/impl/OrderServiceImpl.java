@@ -1,9 +1,9 @@
-package com.winter.github.distribute.service.impl;
+package com.winter.github.distributetest.service.impl;
 
 import com.google.common.collect.Lists;
 import com.winter.github.distribute.annotation.Combine;
-import com.winter.github.distribute.model.OrderModel;
-import com.winter.github.distribute.service.OrderService;
+import com.winter.github.distributetest.model.OrderModel;
+import com.winter.github.distributetest.service.OrderService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 

@@ -1,8 +1,8 @@
 package com.winter.github.distribute.converter;
 
 import com.google.common.collect.Sets;
-import com.winter.github.distribute.annotation.CombineField;
 import com.winter.github.distribute.utils.ReflectUtil;
+import com.winter.github.distribute.annotation.CombineField;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 

@@ -1,10 +1,10 @@
-package com.winter.github.distribute.converters;
+package com.winter.github.distributetest.converters;
 
 import com.google.common.collect.Lists;
-import com.winter.github.distribute.Constants;
+import com.winter.github.distributetest.Constants;
 import com.winter.github.distribute.converter.AbstractBizConverter;
-import com.winter.github.distribute.model.AddressModel;
-import com.winter.github.distribute.service.AddressService;
+import com.winter.github.distributetest.model.AddressModel;
+import com.winter.github.distributetest.service.AddressService;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
