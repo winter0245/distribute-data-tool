@@ -41,6 +41,8 @@ public class ReflectUtil {
      */
     private static final Map<String, Map<Field, ? extends Annotation>> CLASS_FIELD_ANNOTATION_CACHE = Maps.newHashMap();
 
+    private static final Map<Class<?>, ClassInfoContext> CLASS_INFO_CONTEXT_CACHE = Maps.newConcurrentMap();
+
     /**
      * Return {@code true} if the supplied Collection is {@code null} or empty.
      * Otherwise, return {@code false}.
@@ -89,12 +91,13 @@ public class ReflectUtil {
      * @author zhangdongdong <br>
      * @taskId <br>
      */
-    public static Object getPropertyValue(Object obj, String name) {
+    public static Object getPropertyValue(Object obj, String name, Class type) {
         try {
-            PropertyDescriptor propertyDescriptor = getBeanPropertyMethod(obj.getClass(), name);
-            if (propertyDescriptor != null) {
-                return propertyDescriptor.getReadMethod().invoke(obj);
-            }
+            PropertyDescriptor propertyDescriptor = getBeanPropertyMethod(type, name);
+            //            if (propertyDescriptor != null) {
+            //                return propertyDescriptor.getReadMethod().invoke(obj);
+            //            }
+            return quickInvoke(type, obj, propertyDescriptor.getReadMethod().getName());
         } catch (Exception e) {
             log.error("get properties {} error", name, e);
         }
@@ -202,6 +205,11 @@ public class ReflectUtil {
                     })));
             return result;
         });
+    }
+
+    public static Object quickInvoke(Class type, Object target, String methodName, Object... params) {
+        ClassInfoContext classInfoContext = CLASS_INFO_CONTEXT_CACHE.computeIfAbsent(type, k -> new ClassInfoContext(type));
+        return classInfoContext.invoke(target, methodName, params);
     }
 
     public static Field getField(Class<?> type, String name) {

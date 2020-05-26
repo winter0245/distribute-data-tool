@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface OrderService {
     List<OrderModel> queryOrders();
+
+    List<OrderModel> queryOrders2();
 }

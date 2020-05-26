@@ -132,15 +132,15 @@ public abstract class AbstractBizConverter<U, C> {
         Class<?> type = field.getType();
         Set<U> result = Sets.newHashSet();
         if (type.isArray()) {
-            rows.stream().map(e -> ReflectUtil.getPropertyValue(e, field.getName())).filter(Objects::nonNull).forEach(r ->
+            rows.stream().map(e -> ReflectUtil.getPropertyValue(e, field.getName(), e.getClass())).filter(Objects::nonNull).forEach(r ->
                     Arrays.stream(((U[]) r)).filter(Objects::nonNull).forEach(result::add)
             );
         } else if (Collection.class.isAssignableFrom(type)) {
-            rows.stream().map(e -> ReflectUtil.getPropertyValue(e, field.getName())).filter(Objects::nonNull).forEach(r ->
+            rows.stream().map(e -> ReflectUtil.getPropertyValue(e, field.getName(), e.getClass())).filter(Objects::nonNull).forEach(r ->
                     ((Collection<U>) r).stream().filter(Objects::nonNull).forEach(result::add)
             );
         } else {
-            rows.stream().map(e -> ReflectUtil.getPropertyValue(e, field.getName())).filter(Objects::nonNull)
+            rows.stream().map(e -> ReflectUtil.getPropertyValue(e, field.getName(), e.getClass())).filter(Objects::nonNull)
                     .forEach(r -> result.add((U) r));
         }
         return result;
@@ -159,19 +159,19 @@ public abstract class AbstractBizConverter<U, C> {
     protected <R> List<C> map(R row, Field field, Map<U, C> resultMap) {
         Class<?> type = field.getType();
         if (type.isArray()) {
-            U[] ids = (U[]) ReflectUtil.getPropertyValue(row, field.getName());
+            U[] ids = (U[]) ReflectUtil.getPropertyValue(row, field.getName(), row.getClass());
             if (ids == null || ids.length == 0) {
                 return Collections.emptyList();
             }
             return Arrays.stream(ids).filter(resultMap::containsKey).map(resultMap::get).collect(Collectors.toList());
         } else if (Collection.class.isAssignableFrom(type)) {
-            Collection<U> ids = (Collection<U>) ReflectUtil.getPropertyValue(row, field.getName());
+            Collection<U> ids = (Collection<U>) ReflectUtil.getPropertyValue(row, field.getName(), row.getClass());
             if (ReflectUtil.isEmpty(ids)) {
                 return Collections.emptyList();
             }
             return ids.stream().filter(resultMap::containsKey).map(resultMap::get).collect(Collectors.toList());
         } else {
-            U id = (U) ReflectUtil.getPropertyValue(row, field.getName());
+            U id = (U) ReflectUtil.getPropertyValue(row, field.getName(), row.getClass());
             if (id == null || !resultMap.containsKey(id)) {
                 return Collections.emptyList();
             }
@@ -191,10 +191,13 @@ public abstract class AbstractBizConverter<U, C> {
     protected <R> void convertField(R row, Map.Entry<Field, CombineField> bizEntry, List<C> matchList, Class<R> type) {
         Class<?> fieldType = bizEntry.getKey().getType();
         PropertyDescriptor targetField = ReflectUtil.getBeanPropertyMethod(type, bizEntry.getValue().convertField());
-        if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType) || targetField != null) {
-            ReflectUtil.setPropertyValue(row, bizEntry.getValue().convertField(), matchList);
+        if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType) || Collection.class
+                .isAssignableFrom(targetField.getReadMethod().getReturnType())
+        ) {
+            ReflectUtil.quickInvoke(type, row, targetField.getWriteMethod().getName(), matchList);
         } else {
-            ReflectUtil.setPropertyValue(row, bizEntry.getValue().convertField(), matchList.get(0));
+            ReflectUtil.quickInvoke(type, row, targetField.getWriteMethod().getName(), matchList.get(0));
         }
     }
+
 }

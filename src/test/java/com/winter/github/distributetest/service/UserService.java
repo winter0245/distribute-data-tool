@@ -9,4 +9,6 @@ public interface UserService {
     List<UserInfoModel> getUsers();
 
     List<UserInfoModel> getUserByIds(List<String> ids);
+
+    List<UserInfoModel> getUserByIdsWithAddress(List<String> ids);
 }

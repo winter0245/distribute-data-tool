@@ -1,5 +1,6 @@
 package com.winter.github.distributetest;
 
+import com.esotericsoftware.reflectasm.MethodAccess;
 import com.google.common.collect.Lists;
 import com.winter.github.distribute.converter.AbstractBizConverter;
 import com.winter.github.distributetest.converters.ProductBizConverter;
@@ -21,6 +22,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -44,14 +46,13 @@ public class MainTests {
      * @Resource private List<AbstractBizConverter<?, ?>> converters;
      **/
     @Resource
-    private List<AbstractBizConverter<?, ?>> converters ;
+    private List<AbstractBizConverter<?, ?>> converters;
 
     @Resource
     private UserService userService;
 
     @Resource
     private OrderService orderService;
-
 
     @Test
     public void testReflect() {
@@ -87,26 +88,56 @@ public class MainTests {
 
     @Test
     public void testUser() {
-//        List<UserInfoModel> users = userService.getUsers();
-//        Assert.assertFalse(users.isEmpty());
-        for (int i = 0; i < 100; i++) {
+        //        List<UserInfoModel> users = userService.getUsers();
+        //        Assert.assertFalse(users.isEmpty());
+        for (int j = 0; j < 100; j++) {
             long start = System.currentTimeMillis();
-            List<OrderModel> orderModels = orderService.queryOrders();
-            Assert.assertFalse(orderModels.isEmpty());
-            orderModels.forEach(o -> {
-                Assert.assertNotNull(o.getUserInfoModel());
-                Assert.assertFalse(o.getUserInfoModel().getAddressModels().isEmpty());
-                Assert.assertFalse(o.getProductModels().isEmpty());
-            });
-            log.info("query  orders [{}]  success ,take time {}ms", orderModels.size(), System.currentTimeMillis() - start);
+            for (int i = 0; i < 100000; i++) {
+//                            long start = System.currentTimeMillis();
+                 orderService.queryOrders();
+//                Assert.assertFalse(orderModels.isEmpty());
+//                            orderModels.forEach(o -> {
+//                                Assert.assertNotNull(o.getUserInfoModel());
+//                                Assert.assertFalse(o.getUserInfoModel().getAddressModels().isEmpty());
+//                                Assert.assertFalse(o.getProductModels().isEmpty());
+//                            });
+//                            log.info("query  orders [{}]  success ,take time {}ms", orderModels.size(), System.currentTimeMillis() - start);
+            }
+            log.info("aop take time :{}ms", System.currentTimeMillis() - start);
+            start = System.currentTimeMillis();
+            for (int i = 0; i < 100000; i++) {
+                orderService.queryOrders2();
+            }
+            log.info("direct take time :{}ms", System.currentTimeMillis() - start);
+            //10w次调用,反射比普通调用慢1s左右
         }
-
     }
 
+    @Test
+    public void testReflect2() throws InvocationTargetException, IllegalAccessException {
+        MethodAccess methodAccess = MethodAccess.get(UserInfoModel.class);
+        UserInfoModel userInfoModel = new UserInfoModel();
+        PropertyDescriptor propertyMethod = ReflectUtil.getBeanPropertyMethod(UserInfoModel.class, "id");
+        String name = propertyMethod.getWriteMethod().getName();
+        int index = methodAccess.getIndex(name);
+        for (int j = 0; j < 100; j++) {
+            long start = System.currentTimeMillis();
+            for (int i = 0; i < 1000000; i++) {
+                methodAccess.invoke(userInfoModel, index, "1234");
+            }
+            log.info("methodAccess take time :{}ms", System.currentTimeMillis() - start);
+            start = System.currentTimeMillis();
+            for (int i = 0; i < 1000000; i++) {
+                propertyMethod.getWriteMethod().invoke(userInfoModel, "1234");
+            }
+            log.info("invoke take time :{}ms", System.currentTimeMillis() - start);
+            start = System.currentTimeMillis();
+            for (int i = 0; i < 1000000; i++) {
+                userInfoModel.setId("1234");
+            }
+            log.info("direct take time :{}ms", System.currentTimeMillis() - start);
+        }
+        System.out.println(userInfoModel);
 
-
-
-    public static void main(String[] args) {
-        System.out.println(2 ^ 3);
     }
 }
