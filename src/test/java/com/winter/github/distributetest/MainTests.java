@@ -3,6 +3,9 @@ package com.winter.github.distributetest;
 import com.esotericsoftware.reflectasm.MethodAccess;
 import com.google.common.collect.Lists;
 import com.winter.github.distribute.converter.AbstractBizConverter;
+import com.winter.github.distribute.task.ShardTaskContext;
+import com.winter.github.distribute.task.ShardTaskHelper;
+import com.winter.github.distribute.utils.ClassInfoContext;
 import com.winter.github.distributetest.converters.ProductBizConverter;
 import com.winter.github.distributetest.converters.UserBizConverter;
 import com.winter.github.distributetest.model.OrderModel;
@@ -11,6 +14,9 @@ import com.winter.github.distributetest.model.UserInfoModel;
 import com.winter.github.distributetest.service.OrderService;
 import com.winter.github.distributetest.service.UserService;
 import com.winter.github.distribute.utils.ReflectUtil;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
@@ -24,6 +30,8 @@ import javax.annotation.Resource;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,6 +61,9 @@ public class MainTests {
 
     @Resource
     private OrderService orderService;
+
+    @Resource
+    private ShardTaskHelper shardTaskHelper;
 
     @Test
     public void testReflect() {
@@ -93,15 +104,15 @@ public class MainTests {
         for (int j = 0; j < 100; j++) {
             long start = System.currentTimeMillis();
             for (int i = 0; i < 100000; i++) {
-//                            long start = System.currentTimeMillis();
-                 orderService.queryOrders();
-//                Assert.assertFalse(orderModels.isEmpty());
-//                            orderModels.forEach(o -> {
-//                                Assert.assertNotNull(o.getUserInfoModel());
-//                                Assert.assertFalse(o.getUserInfoModel().getAddressModels().isEmpty());
-//                                Assert.assertFalse(o.getProductModels().isEmpty());
-//                            });
-//                            log.info("query  orders [{}]  success ,take time {}ms", orderModels.size(), System.currentTimeMillis() - start);
+                //                            long start = System.currentTimeMillis();
+                orderService.queryOrders();
+                //                Assert.assertFalse(orderModels.isEmpty());
+                //                            orderModels.forEach(o -> {
+                //                                Assert.assertNotNull(o.getUserInfoModel());
+                //                                Assert.assertFalse(o.getUserInfoModel().getAddressModels().isEmpty());
+                //                                Assert.assertFalse(o.getProductModels().isEmpty());
+                //                            });
+                //                            log.info("query  orders [{}]  success ,take time {}ms", orderModels.size(), System.currentTimeMillis() - start);
             }
             log.info("aop take time :{}ms", System.currentTimeMillis() - start);
             start = System.currentTimeMillis();
@@ -120,10 +131,13 @@ public class MainTests {
         PropertyDescriptor propertyMethod = ReflectUtil.getBeanPropertyMethod(UserInfoModel.class, "id");
         String name = propertyMethod.getWriteMethod().getName();
         int index = methodAccess.getIndex(name);
+        ClassInfoContext classInfoContext = new ClassInfoContext(UserInfoModel.class);
         for (int j = 0; j < 100; j++) {
             long start = System.currentTimeMillis();
             for (int i = 0; i < 1000000; i++) {
-                methodAccess.invoke(userInfoModel, index, "1234");
+                //                methodAccess.invoke(userInfoModel, index, "1234");
+                //                ReflectUtil.quickInvoke(UserInfoModel.class, userInfoModel, index, "1234");
+                classInfoContext.invoke(userInfoModel, name, "1234");
             }
             log.info("methodAccess take time :{}ms", System.currentTimeMillis() - start);
             start = System.currentTimeMillis();
@@ -138,6 +152,62 @@ public class MainTests {
             log.info("direct take time :{}ms", System.currentTimeMillis() - start);
         }
         System.out.println(userInfoModel);
+    }
+
+    @Test
+    public void testShardTask() throws InterruptedException {
+        int threads = 10;
+        String taskKey = System.currentTimeMillis() + "_test";
+        MockTaskMeta mockTaskMeta = new MockTaskMeta("task_" + taskKey);
+        AtomicInteger counter = new AtomicInteger();
+        AtomicInteger target = new AtomicInteger();
+        CountDownLatch countDownLatch = new CountDownLatch(threads);
+        for (int i = 0; i < threads; i++) {
+            target.set(0);
+            List<ShardTaskContext> taskContexts = Stream.iterate(1, n -> n + 1).limit(10)
+                    .map(n -> {
+                        target.addAndGet(n);
+                        return new ShardTaskContext(mockTaskMeta, taskKey, new MockTaskShardParams(n));
+                    })
+                    .collect(Collectors.toList());
+            new Thread(() -> {
+                shardTaskHelper.plantingTask(taskContexts);
+                ShardTaskContext shardTaskContext = null;
+                while ((shardTaskContext = shardTaskHelper.fetchTasks(taskKey)) != null) {
+                    MockTaskMeta taskMeta = shardTaskContext.parseMeta(MockTaskMeta.class);
+                    MockTaskShardParams shardParams = shardTaskContext.parseShardParams(MockTaskShardParams.class);
+                    counter.addAndGet(shardParams.index);
+                    log.info("invoke task :{} params :{} finish", taskMeta, shardParams);
+                    try {
+                        //保证每个线程都有机会执行
+                        TimeUnit.MILLISECONDS.sleep(200);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    countDownLatch.countDown();
+                }
+            }).start();
+        }
+        countDownLatch.await();
+        Assert.assertEquals(target.get(), counter.get());
+        log.info("shard task test pass");
 
     }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class MockTaskMeta {
+        private String name;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class MockTaskShardParams {
+
+        private int index;
+
+    }
+
 }
