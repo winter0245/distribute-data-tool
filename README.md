@@ -130,7 +130,7 @@ public class UserBizConverter extends AbstractBizConverter<String, UserInfoModel
 
 该组件利用redis分布式锁和redis队列，实现将定时任务拆分、无冲突并发执行，执行逻辑如下：
 
-![分布式定时任务](C:\Users\zhangdongdong\Desktop\专利申请\分布式定时任务\分布式定时任务.png)
+![执行逻辑](http://winterworld.cn/github/distribute-task.png)
 
 #### 2.1 配置调度参数
 
