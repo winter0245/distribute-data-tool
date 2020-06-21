@@ -124,3 +124,56 @@ public class UserBizConverter extends AbstractBizConverter<String, UserInfoModel
     }
 ```
 
+### 2.轻量级分布式定时任务
+
+该组件主要解决某些场景下我们希望定时任务分布式(分片)执行，并且可以动态扩展或缩减任务执行节点的问题。目前主流的类似的方案有xxl-job、elastic-job等框架，实现较为复杂。
+
+该组件利用redis分布式锁和redis队列，实现将定时任务拆分、无冲突并发执行，执行逻辑如下：
+
+![分布式定时任务](C:\Users\zhangdongdong\Desktop\专利申请\分布式定时任务\分布式定时任务.png)
+
+#### 2.1 配置调度参数
+
+```yaml
+distribute:
+  task:
+    #任务执行的最小时间间隔,用于判断是否是同一周期的任务
+    min-time-mill-seconds: 5000
+    #分布式锁key参数模板
+    task-lock-key-pattern: distribute:task:%s:lock
+    #分布式任务队列key模板
+    task-queue-key-pattern: distribute:task:%s:queue
+    #分布式任务时间戳key模板,记录上一次执行时间
+    task-stamp-key-patten: distribute:task:%s:timestamp 
+```
+
+#### 2.2 注入调度器
+
+```java
+    @Resource
+    private ShardTaskHelper shardTaskHelper;
+```
+
+#### 2.2 执行定时任务
+
+```java
+    @Scheduled(cron = "0 0 4 * * ?")
+    public void invokeTask(){
+        //每个定时任务需要分配唯一的taskKey,保证不与其他任务相同即可
+        String taskKey="tt";
+        //将任务拆分成子任务,如果不需要拆分返回单个元素list即可
+        List<ShardTaskContext> contexts=***;
+        //放入到redis队列中
+        shardTaskHelper.plantingTask(contexts);
+        ShardTaskContext shardTaskContext=null;
+        while ((shardTaskContext=shardTaskHelper.fetchTasks(taskKey))!=null){
+            //获取任务元数据
+            shardTaskContext.parseMeta();
+            //获取分片参数(如果需要)
+            shardTaskContext.parseShardParams();
+            //执行任务...
+            //****
+        }
+    }
+```
+

@@ -205,7 +205,6 @@ public class MainTests {
     @NoArgsConstructor
     @AllArgsConstructor
     private static class MockTaskShardParams {
-
         private int index;
 
     }

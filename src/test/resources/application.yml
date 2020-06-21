@@ -4,3 +4,13 @@ spring:
     port: 6379
     password: 123456
     database: 8
+distribute:
+  task:
+    #任务执行的最小时间间隔,用于判断是否是同一周期的任务
+    min-time-mill-seconds: 5000
+    #分布式锁key参数模板
+    task-lock-key-pattern: distribute:task:%s:lock
+    #分布式任务队列key模板
+    task-queue-key-pattern: distribute:task:%s:queue
+    #分布式任务时间戳key模板,记录上一次执行时间
+    task-stamp-key-patten: distribute:task:%s:timestamp
