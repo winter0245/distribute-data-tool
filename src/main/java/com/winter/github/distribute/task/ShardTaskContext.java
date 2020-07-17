@@ -69,6 +69,11 @@ public class ShardTaskContext implements Serializable {
     public ShardTaskContext() {
     }
 
+    /**
+     * 构建分片任务上下文
+     * @param taskMeta 任务元数据
+     * @param taskKey 任务的唯一标识
+     */
     public ShardTaskContext(Object taskMeta, String taskKey) {
         Assert.notNull(taskMeta, "task meta obj not null");
         Assert.notNull(taskKey, "task key not null");
@@ -77,6 +82,12 @@ public class ShardTaskContext implements Serializable {
         this.createTime = new Date();
     }
 
+    /**
+     * 构建分片任务上下文
+     * @param taskMeta 任务元数据
+     * @param taskKey 任务的唯一标识
+     * @param shardParams 分片参数
+     */
     public ShardTaskContext(Object taskMeta, String taskKey, Object shardParams) {
         this(taskMeta, taskKey);
         if (shardParams != null) {
