@@ -34,8 +34,4 @@ public class ProductBizConverter extends AbstractBizConverter<String, ProductMod
         return ids.stream().collect(Collectors.toMap(id -> id, id -> new ProductModel(id, "product-" + id, RandomUtils.nextDouble(1, 100))));
     }
 
-    @Override
-    protected <R> void convertField(R row, Map.Entry<Field, CombineField> bizEntry, List<ProductModel> matchList, Class<R> type) {
-        ReflectUtil.setPropertyValue(row, bizEntry.getValue().convertField(), matchList);
-    }
 }

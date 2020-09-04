@@ -19,6 +19,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +29,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import java.beans.PropertyDescriptor;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -101,27 +105,32 @@ public class MainTests {
     public void testUser() {
         //        List<UserInfoModel> users = userService.getUsers();
         //        Assert.assertFalse(users.isEmpty());
-        for (int j = 0; j < 100; j++) {
-            long start = System.currentTimeMillis();
-            for (int i = 0; i < 100000; i++) {
-                //                            long start = System.currentTimeMillis();
-                orderService.queryOrders();
-                //                Assert.assertFalse(orderModels.isEmpty());
-                //                            orderModels.forEach(o -> {
-                //                                Assert.assertNotNull(o.getUserInfoModel());
-                //                                Assert.assertFalse(o.getUserInfoModel().getAddressModels().isEmpty());
-                //                                Assert.assertFalse(o.getProductModels().isEmpty());
-                //                            });
-                //                            log.info("query  orders [{}]  success ,take time {}ms", orderModels.size(), System.currentTimeMillis() - start);
-            }
-            log.info("aop take time :{}ms", System.currentTimeMillis() - start);
-            start = System.currentTimeMillis();
-            for (int i = 0; i < 100000; i++) {
-                orderService.queryOrders2();
-            }
-            log.info("direct take time :{}ms", System.currentTimeMillis() - start);
-            //10w次调用,反射比普通调用慢1s左右
-        }
+        List<OrderModel> orderModels = orderService.queryOrders();
+        orderModels.forEach(o -> {
+            log.info("query order :{}", o);
+        });
+
+//        for (int j = 0; j < 100; j++) {
+//            long start = System.currentTimeMillis();
+//            for (int i = 0; i < 100000; i++) {
+//                //                            long start = System.currentTimeMillis();
+//                orderService.queryOrders();
+//                //                Assert.assertFalse(orderModels.isEmpty());
+//                //                            orderModels.forEach(o -> {
+//                //                                Assert.assertNotNull(o.getUserInfoModel());
+//                //                                Assert.assertFalse(o.getUserInfoModel().getAddressModels().isEmpty());
+//                //                                Assert.assertFalse(o.getProductModels().isEmpty());
+//                //                            });
+//                //                            log.info("query  orders [{}]  success ,take time {}ms", orderModels.size(), System.currentTimeMillis() - start);
+//            }
+//            log.info("aop take time :{}ms", System.currentTimeMillis() - start);
+//            start = System.currentTimeMillis();
+//            for (int i = 0; i < 100000; i++) {
+//                orderService.queryOrders2();
+//            }
+//            log.info("direct take time :{}ms", System.currentTimeMillis() - start);
+//            //10w次调用,反射比普通调用慢1s左右
+//        }
     }
 
     @Test
@@ -207,6 +216,37 @@ public class MainTests {
     private static class MockTaskShardParams {
         private int index;
 
+    }
+
+    @Test
+    public void testMethodHandle() throws Throwable {
+        UserInfoModel userInfoModel = new UserInfoModel();
+        userInfoModel.setName("张三");
+        Method method = UserInfoModel.class.getMethod("getName");
+        MethodHandle methodHandle = ReflectUtil.convertMethodToHandle(method).bindTo(userInfoModel);
+        for (int i = 0; i < 10; i++) {
+            long start = System.currentTimeMillis();
+            for (int j = 0; j < 10000000; j++) {
+                method.invoke(userInfoModel);
+            }
+            long takeTime = System.currentTimeMillis() - start;
+            log.info("invoke with method take time :{}ms", takeTime);
+            start = System.currentTimeMillis();
+            for (int j = 0; j < 10000000; j++) {
+                methodHandle.invoke();
+            }
+            takeTime = System.currentTimeMillis() - start;
+            log.info("invoke with methodHandle take time :{}ms", takeTime);
+
+        }
+        System.out.println(method.invoke(userInfoModel));
+        System.out.println(methodHandle.invoke());
+    }
+
+
+    @Test
+    public void testGetField() {
+        System.out.println(ReflectUtil.exactCombineContexts(UserInfoModel.class));
     }
 
 }

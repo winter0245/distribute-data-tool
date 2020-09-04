@@ -1,10 +1,6 @@
 package com.winter.github.distribute.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * 标记组合字段的注解<br>
@@ -14,9 +10,10 @@ import java.lang.annotation.Target;
  * @taskId <br>
  * @date 2020年03月30日 15:05:24 <br>
  */
+@Repeatable(CombineFields.class)
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD,ElementType.METHOD})
 public @interface CombineField {
     /**
      * moduleCode ,业务关联模块编码

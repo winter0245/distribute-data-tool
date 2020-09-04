@@ -3,6 +3,7 @@ package com.winter.github.distributetest.model;
 import com.winter.github.distributetest.Constants;
 import com.winter.github.distribute.annotation.CombineField;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
  * @taskId <br>
  * @date 2020年03月30日 16:52:06 <br>
  */
+@Slf4j
 @Data
 public class OrderModel {
 
@@ -23,6 +25,7 @@ public class OrderModel {
     private String userId;
 
     @CombineField(value = Constants.PRODUCT_MODULE, convertField = "productModels")
+    @CombineField(value = Constants.PRODUCT_MODULE, convertField = "testProduct")
     private List<String> productIds;
 
     /**
@@ -34,6 +37,10 @@ public class OrderModel {
      * 商品信息
      */
     private List<ProductModel> productModels;
+
+    public void setTestProduct(ProductModel product) {
+        log.info("inject product success:{}", product);
+    }
 
     public OrderModel(String id, String userId, List<String> productIds) {
         this.id = id;

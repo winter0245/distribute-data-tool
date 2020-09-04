@@ -15,7 +15,7 @@ import java.util.List;
  * @date 2020年03月30日 16:00:11 <br>
  */
 @Data
-public class UserInfoModel {
+public class UserInfoModel extends PersonModel{
 
     private String id;
 

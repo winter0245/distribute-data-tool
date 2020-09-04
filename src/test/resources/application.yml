@@ -1,8 +1,7 @@
 spring:
   redis:
-    host: 10.30.20.34
+    host: 127.0.0.1
     port: 6379
-    password: 123456
     database: 8
 distribute:
   task:

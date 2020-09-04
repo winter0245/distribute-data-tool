@@ -1,19 +1,25 @@
 package com.winter.github.distribute.utils;
 
 import com.google.common.collect.Maps;
+import com.sun.org.apache.regexp.internal.RE;
+import com.winter.github.distribute.annotation.CombineField;
+import com.winter.github.distribute.annotation.CombineFields;
 import com.winter.github.distribute.converter.AbstractBizConverter;
+import com.winter.github.distribute.converter.ConverterContext;
 import com.winter.github.distribute.exception.ReflectionException;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.cglib.core.ReflectUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,6 +36,8 @@ public class ReflectUtil {
     private ReflectUtil() {
         //避免外部实例化
     }
+
+    private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
     /**
      * 类属性map
@@ -75,11 +83,14 @@ public class ReflectUtil {
      * @taskId <br>
      */
     public static PropertyDescriptor getBeanPropertyMethod(Class<?> type, String propertyName) {
-        Map<String, PropertyDescriptor> descriptorMap = CLASS_PROPERTY_MAP.computeIfAbsent(type, k -> {
+        return getBeanPropertyMethodMap(type).get(propertyName);
+    }
+
+    public static Map<String, PropertyDescriptor> getBeanPropertyMethodMap(Class<?> type) {
+        return CLASS_PROPERTY_MAP.computeIfAbsent(type, k -> {
             PropertyDescriptor[] beanProperties = ReflectUtils.getBeanProperties(k);
             return Arrays.stream(beanProperties).collect(Collectors.toMap(PropertyDescriptor::getName, p -> p));
         });
-        return descriptorMap.get(propertyName);
     }
 
     /**
@@ -200,16 +211,53 @@ public class ReflectUtil {
         return classInfoContext.invoke(target, methodName, params);
     }
 
-    public static Field getField(Class<?> type, String name) {
-        try {
-            Field field = type.getDeclaredField(name);
-            field.setAccessible(true);
-            return field;
-        } catch (NoSuchFieldException e) {
-            log.error("get field {} for class {} error", name, type);
-            throw new ReflectionException(e);
-        }
 
+    public static MethodHandle convertMethodToHandle(Method method) throws NoSuchMethodException, IllegalAccessException {
+        Class<?> declaringClass = method.getDeclaringClass();
+        Class<?> returnType = method.getReturnType();
+        MethodType methodType = MethodType.methodType(returnType, method.getParameterTypes());
+        return LOOKUP.findVirtual(declaringClass, method.getName(), methodType);
     }
+
+
+    public static List<ConverterContext> exactCombineContexts(Class<?> type) {
+        Map<String, PropertyDescriptor> propertyMethodMap = getBeanPropertyMethodMap(type);
+        if (propertyMethodMap == null || propertyMethodMap.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return propertyMethodMap.values().stream().map(descriptor -> {
+            Method readMethod = descriptor.getReadMethod();
+            if (readMethod == null) {
+                return null;
+            }
+            String fieldName = descriptor.getName();
+            Field field = FieldUtils.getField(type, fieldName, true);
+            CombineField[] combineFields = null;
+            if (field != null) {
+                combineFields = field.getAnnotationsByType(CombineField.class);
+                if (ArrayUtils.isEmpty(combineFields) && field.getAnnotation(CombineFields.class) != null) {
+                    combineFields = field.getAnnotation(CombineFields.class).value();
+                }
+            }
+            if (ArrayUtils.isEmpty(combineFields)) {
+                combineFields = readMethod.getAnnotationsByType(CombineField.class);
+                if (ArrayUtils.isEmpty(combineFields) && readMethod.getAnnotation(CombineFields.class) != null) {
+                    combineFields = readMethod.getAnnotation(CombineFields.class).value();
+                }
+            }
+            if (combineFields != null && !ArrayUtils.isEmpty(combineFields)) {
+                return Stream.of(combineFields).map(combineField -> {
+                    PropertyDescriptor writerDescriptor = propertyMethodMap.get(combineField.convertField());
+                    if (writerDescriptor == null || writerDescriptor.getWriteMethod() == null) {
+                        return null;
+                    }
+                    return new ConverterContext(readMethod, writerDescriptor.getWriteMethod(), combineField.value());
+                }).filter(Objects::nonNull);
+            } else {
+                return null;
+            }
+        }).filter(Objects::nonNull).flatMap(u -> u).collect(Collectors.toList());
+    }
+
 
 }
